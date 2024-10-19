@@ -62,30 +62,34 @@ Truth Table
 Verilog Code
 
 4:1 MUX Gate-Level Implementation
-module mux(y,s,a,b,c,d);
-input [1:0]s;
-input a,b,c,d;
+```
+module multiplexer(s1,s0,a,b,c,d,y);
+input s1,s0,a,b,c,d;
 output y;
-wire [3:0]w;
-and g1(w[0],~s[1],~s[1],a);
-and g2(w[1],~s[1],s[0],b);
-and g3(w[2],s[1],~s[0],c);
-and g4(w[3],s[1],s[0],d);
+wire[3:0]w;
+and g1(w[0],~s1,~s0,a);
+and g2(w[1],~s1,s0,b);
+and g3(w[2],s1,~s0,c);
+and g4(w[3],s1,s0,d);
 or g5(y,w[0],w[1],w[2],w[3]);
 endmodule
+```
 ![image](https://github.com/user-attachments/assets/417c3ea3-a8a0-4733-8cff-f9fb6ee2e58a)
 
 
 4:1 MUX Data Flow Implementation
+```
 module muld(a,b,c,d,s,y);
 input a,b,c,d;
 input[1:0]s;
 output y;
 assign y=(~s[1]&~s[0]&a)|(~s[1]&s[0]&b)|(s[1]&~s[0]&c)|(s[1]&s[0]&d);
 endmodule
+```
 ![image](https://github.com/user-attachments/assets/4104619e-06b3-444f-bb6c-4459e0f374bb)
 
 4:1 MUX Behavioral Implementation
+```
 module muxbe(s,i,y);
 input [1:0]s;
 input [3:0]i;
@@ -100,11 +104,13 @@ case(s)
 endcase
 end
 endmodule
+```
 
 ![image](https://github.com/user-attachments/assets/d0f2d85c-a904-4b8f-94d6-804562b8288e)
 
 4:1 MUX Structural Implementation
-[23:02, 25/9/2024] Espacio✨: module and_gate(output a, input b, c, d);
+```
+ module and_gate(output a, input b, c, d);
 assign a = b & c & d;
 endmodule
 
@@ -128,97 +134,43 @@ and_gate u5(T3, c, s0bar, s1);
 and_gate u6(T4, d, s0, s1);
 or_gate u7(out, T1, T2, T3, T4);
 endmodule
-[23:06, 25/9/2024] Espacio✨: 
+```
 ![image](https://github.com/user-attachments/assets/d7a504ec-2c75-4091-9525-c0ec10bf9042)
 
 Testbench Implementation
+```
+module multiplexer_tb;
+ // Declare inputs as reg and outputs as wire
+ reg s1, s0, a, b, c, d;
+ wire y;
 
-// mux4_to_1_tb.v
-`timescale 1ns / 1ps
+ // Instantiate the multiplexer module
+ multiplexer uut (
+   .s1(s1), 
+   .s0(s0), 
+   .a(a), 
+   .b(b), 
+   .c(c), 
+   .d(d), 
+   .y(y)
+ );
 
-module mux4_to_1_tb;
-    // Inputs
-    reg A;
-    reg B;
-    reg C;
-    reg D;
-    reg S0;
-    reg S1;
-
-    // Outputs
-    wire Y_gate;
-    wire Y_dataflow;
-    wire Y_behavioral;
-    wire Y_structural;
-
-    // Instantiate the Gate-Level MUX
-    mux4_to_1_gate uut_gate (
-        .A(A),
-        .B(B),
-        .C(C),
-        .D(D),
-        .S0(S0),
-        .S1(S1),
-        .Y(Y_gate)
-    );
-
-    // Instantiate the Data Flow MUX
-    mux4_to_1_dataflow uut_dataflow (
-        .A(A),
-        .B(B),
-        .C(C),
-        .D(D),
-        .S0(S0),
-        .S1(S1),
-        .Y(Y_dataflow)
-    );
-
-    // Instantiate the Behavioral MUX
-    mux4_to_1_behavioral uut_behavioral (
-        .A(A),
-        .B(B),
-        .C(C),
-        .D(D),
-        .S0(S0),
-        .S1(S1),
-        .Y(Y_behavioral)
-    );
-
-    // Instantiate the Structural MUX
-    mux4_to_1_structural uut_structural (
-        .A(A),
-        .B(B),
-        .C(C),
-        .D(D),
-        .S0(S0),
-        .S1(S1),
-        .Y(Y_structural)
-    );
-
-    // Test vectors
-    initial begin
-        // Initialize Inputs
-        A = 0; B = 0; C = 0; D = 0; S0 = 0; S1 = 0;
-
-        // Apply test cases
-        #10 {S1, S0, A, B, C, D} = 6'b00_0000; // Y = A = 0
-        #10 {S1, S0, A, B, C, D} = 6'b00_0001; // Y = A = 1
-        #10 {S1, S0, A, B, C, D} = 6'b01_0010; // Y = B = 1
-        #10 {S1, S0, A, B, C, D} = 6'b10_0100; // Y = C = 1
-        #10 {S1, S0, A, B, C, D} = 6'b11_1000; // Y = D = 1
-        #10 {S1, S0, A, B, C, D} = 6'b01_1100; // Y = B = 1
-        #10 {S1, S0, A, B, C, D} = 6'b10_1010; // Y = C = 1
-        #10 {S1, S0, A, B, C, D} = 6'b11_0110; // Y = D = 1
-        #10 {S1, S0, A, B, C, D} = 6'b00_1111; // Y = A = 1
-        #10 $stop;
-    end
-
-    // Monitor the outputs
-    initial begin
-        $monitor("Time=%0t | S1=%b S0=%b | Inputs: A=%b B=%b C=%b D=%b | Y_gate=%b | Y_dataflow=%b | Y_behavioral=%b | Y_structural=%b",
-                 $time, S1, S0, A, B, C, D, Y_gate, Y_dataflow, Y_behavioral, Y_structural);
-    end
+ // Test cases
+ initial begin
+   // Monitor changes in inputs and output
+   $monitor("s1 = %b, s0 = %b, a = %b, b = %b, c = %b, d = %b, y = %b", s1, s0, a, b, c, d, y);
+   
+   // Apply test vectors
+   s1 = 0; s0 = 0; a = 1; b = 0; c = 0; d = 0; #10;  // Test case 1
+   s1 = 0; s0 = 1; a = 0; b = 1; c = 0; d = 0; #10;  // Test case 2
+   s1 = 1; s0 = 0; a = 0; b = 0; c = 1; d = 0; #10;  // Test case 3
+   s1 = 1; s0 = 1; a = 0; b = 0; c = 0; d = 1; #10;  // Test case 4
+   
+   // Finish simulation
+   $finish;
+ end
 endmodule
+```
 
 
 Sample Output
@@ -229,6 +181,8 @@ Time=20 | S1=0 S0=0 | Inputs: A=0 B=0 C=0 D=1 | Y_gate=0 | Y_dataflow=0 | Y_beha
 Time=30 | S1=0 S0=1 | Inputs: A=0 B=0 C=0 D=1 | Y_gate=0 | Y_dataflow=0 | Y_behavioral=0 | Y_structural=0
 Time=40 | S1=1 S0=0 | Inputs: A=0 B=0 C=0 D=1 | Y_gate=0 | Y_dataflow=0 | Y_behavioral=0 | Y_structural=0
 ...
+![Screenshot (23)](https://github.com/user-attachments/assets/01132e35-7e39-49c8-8d82-2cfa1be0da3f)
+
 
 Conclusion:
 
